@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { FONT } from '../theme';
-import { ZONE_TILE_SCALE, shade, tierForLevel, type ObjectKind, type ZoneDef } from '../game/zones';
+import { ZONE_TILE_SCALE, TIER_COUNT, shade, type ObjectKind, type ZoneDef } from '../game/zones';
 
 const RAINBOW = [0xff6f91, 0xffd447, 0x8fd14f, 0x6fc3ff, 0xb388ff];
 const MAX_ITEMS = 50;
@@ -167,12 +167,12 @@ function createdTile(scene: Phaser.Scene, zone: ZoneDef, level: number): Phaser.
   const ow = w * ZONE_TILE_SCALE;
   const oh = h * ZONE_TILE_SCALE;
   const c = scene.add.container(0, 0);
-  const tier = tierForLevel(level);
+  const finalColor = shade(zone.base, (TIER_COUNT - 1) * 0.12);
 
   const bg = scene.add.graphics();
   const oct = octagonPoints(ow, oh);
-  bg.fillStyle(shade(zone.base, (tier - 1) * 0.12), 1);
-  bg.lineStyle(4, shade(zone.base, -0.25), 1);
+  bg.fillStyle(finalColor, 0.5);
+  bg.lineStyle(4, finalColor, 0.5);
   bg.fillPoints(oct, true);
   bg.strokePoints(oct, true, true);
   c.add(bg);
@@ -224,7 +224,7 @@ function availableTile(scene: Phaser.Scene, zone: ZoneDef): Phaser.GameObjects.C
   const c = scene.add.container(0, 0);
   const bg = scene.add.graphics();
   const oct = octagonPoints(ow, oh);
-  bg.fillStyle(zone.base, 0.5);
+  bg.fillStyle(shade(zone.base, (TIER_COUNT - 1) * 0.12), 0.5);
   bg.lineStyle(5, 0xffe27a, 1);
   bg.fillPoints(oct, true);
   bg.strokePoints(oct, true, true);
@@ -253,7 +253,7 @@ export function createZoneLabel(
   );
   if (mode === 'created') {
     const badge = scene.add.container(0, -oh * 0.462 + 22);
-    badge.add(scene.add.circle(0, 0, 20, 0xffffff, 0.95).setStrokeStyle(3, shade(zone.base, -0.3)));
+    badge.add(scene.add.circle(0, 0, 20, 0xffffff, 0.5).setStrokeStyle(3, shade(zone.base, -0.3)));
     badge.add(
       scene.add
         .text(0, 0, String(level), { fontFamily: FONT, fontSize: '21px', color: '#2b3a1f' })

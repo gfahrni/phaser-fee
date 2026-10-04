@@ -55,7 +55,7 @@ export function createCastle(scene: Phaser.Scene, level: number): Phaser.GameObj
   c.add(flag);
 
   const badge = scene.add.container(cr + 8, -cr - 8);
-  badge.add(scene.add.circle(0, 0, 24, 0xffffff, 0.95).setStrokeStyle(3, 0x8f2f66));
+  badge.add(scene.add.circle(0, 0, 24, 0xffffff, 0.5).setStrokeStyle(3, 0x8f2f66));
   badge.add(
     scene.add
       .text(0, 0, String(level), { fontFamily: FONT, fontSize: '24px', color: '#2b3a1f' })
