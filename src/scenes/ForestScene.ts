@@ -237,14 +237,14 @@ export class ForestScene extends Phaser.Scene {
     );
   }
 
-  private applyChange(change: () => SaveState, id?: string): void {
+  private applyChange(change: () => SaveState, _id?: string): void {
     const next = change();
     if (next === this.state) return;
     this.state = next;
     saveState(this.state);
     this.closePanel();
-    if (id === CASTLE_ID) this.buildCastle();
-    // Un déblocage / un palier change l'affichage d'autres régions : on resynchronise.
+    // Le château doit toujours se rafraîchir (debug, level up du château, etc.).
+    this.buildCastle();
     this.syncZones();
     this.updateStars();
     this.buildBilanButton();

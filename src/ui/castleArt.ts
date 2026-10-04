@@ -29,9 +29,16 @@ export function createCastle(scene: Phaser.Scene, level: number): Phaser.GameObj
     c.add(scene.add.circle(x, y, r, 0xddd7c9).setStrokeStyle(3, 0x9a9488));
     c.add(scene.add.circle(x, y, r * 0.6, 0xc94f8c));
     if (tl >= 5) {
+      // Drapeau planté vers l'extérieur (jamais sous le donjon central).
+      const px = x + d.dx * (r + 14);
+      const py = y + d.dy * (r + 14);
+      const nx = -d.dy;
+      const ny = d.dx;
       const fg = scene.add.graphics();
+      fg.lineStyle(2, 0x8a5a3b, 1);
+      fg.lineBetween(x, y, px, py);
       fg.fillStyle(0xffd447, 1);
-      fg.fillTriangle(x, y - r, x, y - r - 14, x + 12, y - r - 7);
+      fg.fillTriangle(px, py, px + nx * 12, py + ny * 12, px + d.dx * 10, py + d.dy * 10);
       c.add(fg);
     }
   });
