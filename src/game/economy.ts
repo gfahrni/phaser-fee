@@ -1,5 +1,5 @@
 import type { SaveState } from './types';
-import { CASTLE_ID, GATE_LEVEL, INNER_IDS, ZONE_ORDER, ZONES, zoneById } from './zones';
+import { CASTLE_ID, GATE_LEVEL, INNER_IDS, OUTER_IDS, ZONES, zoneById } from './zones';
 
 export const MAX_LEVEL = 50;
 export const UPGRADE_COST = 1;
@@ -43,24 +43,34 @@ export function upgradeElement(state: SaveState, id: string): SaveState {
  */
 export function unlockBlockReason(state: SaveState, id: string): string | null {
   if (isCreated(state, id)) return 'Région déjà ouverte';
-  const idx = ZONE_ORDER.indexOf(id);
-  if (idx < 0) return 'Région inconnue';
+  const zone = zoneById(id);
+  if (!zone) return 'Région inconnue';
   if (state.stars < UNLOCK_COST) return 'Il te faut 1 étoile ⭐';
 
-  for (const prevId of ZONE_ORDER.slice(0, idx)) {
-    const prev = state.elements[prevId];
-    if (!prev?.created || prev.level < GATE_LEVEL) {
-      return `Monte les régions précédentes au niveau ${GATE_LEVEL}`;
+  if (zone.ring === 'inner') {
+    // Les régions intérieures s'ouvrent dans l'ordre : les précédentes ≥ NIVEAU 10.
+    const before = INNER_IDS.slice(0, INNER_IDS.indexOf(id));
+    for (const prevId of before) {
+      const prev = state.elements[prevId];
+      if (!prev?.created || prev.level < GATE_LEVEL) {
+        return `Monte les régions intérieures précédentes au niveau ${GATE_LEVEL}`;
+      }
     }
+    return null;
   }
 
-  const zone = zoneById(id);
-  if (zone?.ring === 'outer') {
-    for (const innerId of INNER_IDS) {
-      const inner = state.elements[innerId];
-      if (!inner?.created || inner.level < GATE_LEVEL) {
-        return `Ouvre d’abord toutes les régions intérieures au niveau ${GATE_LEVEL}`;
-      }
+  // Extérieures : toutes disponibles d'un coup dès que les intérieures sont ≥ NIVEAU 10.
+  for (const innerId of INNER_IDS) {
+    const inner = state.elements[innerId];
+    if (!inner?.created || inner.level < GATE_LEVEL) {
+      return `Ouvre d’abord toutes les régions intérieures au niveau ${GATE_LEVEL}`;
+    }
+  }
+  // Puis il faut monter à NIVEAU 10 les extérieures déjà ouvertes avant d'en ouvrir une autre.
+  for (const outerId of OUTER_IDS) {
+    const outer = state.elements[outerId];
+    if (outer?.created && outer.level < GATE_LEVEL) {
+      return `Monte au niveau ${GATE_LEVEL} les régions extérieures déjà ouvertes`;
     }
   }
   return null;

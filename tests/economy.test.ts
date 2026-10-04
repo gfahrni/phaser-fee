@@ -11,7 +11,7 @@ import {
   upgradeElement,
   MAX_LEVEL,
 } from '../src/game/economy';
-import { CASTLE_ID, GATE_LEVEL, ZONE_ORDER, ZONES } from '../src/game/zones';
+import { CASTLE_ID, GATE_LEVEL, OUTER_IDS, ZONE_ORDER, ZONES } from '../src/game/zones';
 
 describe('economy', () => {
   it('démarre avec le château niveau 1 et 0 étoile', () => {
@@ -47,14 +47,28 @@ describe('economy', () => {
     expect(canUnlock(s, ZONE_ORDER[1])).toBe(true);
   });
 
-  it('les régions extérieures exigent toutes les intérieures au niveau 10', () => {
+  it('les extérieures sont toutes disponibles d’un coup quand les intérieures sont à 10', () => {
     let s = { ...createInitialState(), stars: 1000 };
     for (let i = 0; i < 6; i++) {
       s = unlockElement(s, ZONE_ORDER[i]);
       for (let l = 1; l < GATE_LEVEL; l++) s = upgradeElement(s, ZONE_ORDER[i]);
     }
-    expect(ZONE_ORDER[6]).toBe('licornes');
-    expect(canUnlock(s, ZONE_ORDER[6])).toBe(true);
+    for (const id of OUTER_IDS) expect(canUnlock(s, id)).toBe(true);
+  });
+
+  it('après une extérieure ouverte, il faut la monter à 10 pour en ouvrir une autre', () => {
+    let s = { ...createInitialState(), stars: 1000 };
+    for (let i = 0; i < 6; i++) {
+      s = unlockElement(s, ZONE_ORDER[i]);
+      for (let l = 1; l < GATE_LEVEL; l++) s = upgradeElement(s, ZONE_ORDER[i]);
+    }
+    const first = OUTER_IDS[0];
+    const second = OUTER_IDS[3];
+    s = unlockElement(s, first);
+    expect(canUnlock(s, second)).toBe(false);
+    expect(unlockBlockReason(s, second)).toMatch(/extérieures déjà ouvertes/);
+    for (let l = 1; l < GATE_LEVEL; l++) s = upgradeElement(s, first);
+    expect(canUnlock(s, second)).toBe(true);
   });
 
   it('les Méchancetés enlèvent 2 niveaux mais jamais sous 1', () => {
