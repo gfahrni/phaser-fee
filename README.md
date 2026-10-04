@@ -7,11 +7,11 @@ Chaque soir, le bilan de la journée fait gagner soit la fée (+3 étoiles),
 soit la sorcière (2 Méchancetés).
 
 Progression : chaque niveau ajoute un objet visible dans la région, chaque palier
-(tous les 10 niveaux) change la couleur et ajoute un monument. Les régions
-intérieures s'ouvrent dans l'ordre (précédentes au niveau 10). Les extérieures
-deviennent toutes disponibles d'un coup dès que les 6 intérieures sont au
-niveau 10, puis libre choix : il faut monter à 10 une extérieure ouverte avant
-d'en ouvrir une autre.
+(tous les 10 niveaux) change la couleur et ajoute un monument. **Libre choix** :
+une région s'ouvre dès que toutes les régions déjà ouvertes sont au niveau 10
+(les extérieures exigent en plus que les 6 intérieures soient au niveau 10).
+Une région verrouillée non déblocable **n'apparaît pas** : dès qu'on peut en
+ouvrir une et qu'on a une étoile, elle s'affiche avec un cadenas.
 
 L'idée d'origine et le plan sont archivés dans [`idee_depart/`](idee_depart/).
 

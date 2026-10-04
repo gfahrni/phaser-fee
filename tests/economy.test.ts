@@ -35,16 +35,32 @@ describe('economy', () => {
     expect(canUnlock(s, ZONE_ORDER[0])).toBe(true);
   });
 
-  it('la région suivante exige la précédente au niveau 10', () => {
-    let s = fairyWins(createInitialState());
-    s = unlockElement(s, ZONE_ORDER[0]);
-    s = { ...s, stars: 100 };
-    expect(canUnlock(s, ZONE_ORDER[1])).toBe(false);
-    expect(unlockBlockReason(s, ZONE_ORDER[1])).toMatch(/niveau 10/);
+  it('libre choix : n’importe quelle région est déblocable si les conditions sont là', () => {
+    const s = fairyWins(createInitialState());
+    expect(canUnlock(s, 'foret')).toBe(true);
+    expect(canUnlock(s, 'champignons')).toBe(true);
+    expect(canUnlock(s, 'lucioles')).toBe(true);
+  });
 
-    for (let i = 1; i < GATE_LEVEL; i++) s = upgradeElement(s, ZONE_ORDER[0]);
-    expect(s.elements[ZONE_ORDER[0]].level).toBe(GATE_LEVEL);
-    expect(canUnlock(s, ZONE_ORDER[1])).toBe(true);
+  it('une région ouverte doit être montée à 10 avant d’en ouvrir une autre', () => {
+    let s = fairyWins(createInitialState());
+    s = unlockElement(s, 'foret');
+    s = { ...s, stars: 100 };
+    expect(canUnlock(s, 'prairie')).toBe(false);
+    expect(unlockBlockReason(s, 'prairie')).toMatch(/niveau 10/);
+
+    for (let i = 1; i < GATE_LEVEL; i++) s = upgradeElement(s, 'foret');
+    expect(s.elements.foret.level).toBe(GATE_LEVEL);
+    expect(canUnlock(s, 'prairie')).toBe(true);
+  });
+
+  it('les extérieures restent fermées tant que les intérieures ne sont pas toutes à 10', () => {
+    let s = fairyWins(createInitialState());
+    s = unlockElement(s, 'foret');
+    s = { ...s, stars: 100 };
+    for (let i = 1; i < GATE_LEVEL; i++) s = upgradeElement(s, 'foret');
+    expect(canUnlock(s, 'licornes')).toBe(false);
+    expect(unlockBlockReason(s, 'licornes')).toMatch(/intérieures/);
   });
 
   it('les extérieures sont toutes disponibles d’un coup quand les intérieures sont à 10', () => {
@@ -66,7 +82,7 @@ describe('economy', () => {
     const second = OUTER_IDS[3];
     s = unlockElement(s, first);
     expect(canUnlock(s, second)).toBe(false);
-    expect(unlockBlockReason(s, second)).toMatch(/extérieures déjà ouvertes/);
+    expect(unlockBlockReason(s, second)).toMatch(/niveau 10/);
     for (let l = 1; l < GATE_LEVEL; l++) s = upgradeElement(s, first);
     expect(canUnlock(s, second)).toBe(true);
   });

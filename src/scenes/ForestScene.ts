@@ -30,6 +30,7 @@ export class ForestScene extends Phaser.Scene {
   private state!: SaveState;
   private mapLayer!: Phaser.GameObjects.Container;
   private zoneNodes = new Map<string, Phaser.GameObjects.Container>();
+  private zoneMeta = new Map<string, string>();
   private castleNode?: Phaser.GameObjects.Container;
   private starsText!: Phaser.GameObjects.Text;
   private bilanButton?: Phaser.GameObjects.Container;
@@ -63,7 +64,6 @@ export class ForestScene extends Phaser.Scene {
     ];
     for (const [x, y, w, h, c, a] of patches) this.add.ellipse(x, y, w, h, c, a);
 
-    // Petite rivière décorative en haut à gauche.
     const river = this.add.graphics();
     river.lineStyle(18, COLORS.mapWater, 0.5);
     river.beginPath();
@@ -76,9 +76,10 @@ export class ForestScene extends Phaser.Scene {
   private buildMap(): void {
     this.mapLayer.removeAll(true);
     this.zoneNodes.clear();
+    this.zoneMeta.clear();
     this.castleNode = undefined;
     this.buildCastle();
-    for (const zone of ZONES) this.buildZone(zone);
+    this.syncZones();
   }
 
   private buildCastle(): void {
@@ -92,10 +93,31 @@ export class ForestScene extends Phaser.Scene {
     this.castleNode = node;
   }
 
-  private buildZone(zone: ZoneDef): void {
+  /**
+   * Met à jour toutes les régions. Une région verrouillée non déblocable
+   * n'apparaît pas du tout ; une région déblocable montre cadenas + nom.
+   */
+  private syncZones(): void {
+    for (const zone of ZONES) this.syncZone(zone);
+  }
+
+  private syncZone(zone: ZoneDef): void {
+    const created = isCreated(this.state, zone.id);
+    const canOpen = !created && unlockBlockReason(this.state, zone.id) === null;
+    const key = created ? `c:${levelOf(this.state, zone.id)}` : canOpen ? 'available' : 'hidden';
+    if (this.zoneMeta.get(zone.id) === key) return;
+    this.zoneMeta.set(zone.id, key);
+
     this.zoneNodes.get(zone.id)?.destroy();
+    this.zoneNodes.delete(zone.id);
+    if (key === 'hidden') return;
+
     const node = this.add.container(zone.x, zone.y);
-    node.add(createZoneTile(this, zone, isCreated(this.state, zone.id), levelOf(this.state, zone.id)));
+    node.add(
+      created
+        ? createZoneTile(this, zone, 'created', levelOf(this.state, zone.id))
+        : createZoneTile(this, zone, 'available', 0),
+    );
     const hit = this.add
       .rectangle(0, 0, zone.w, zone.h, 0xffffff, 0.001)
       .setInteractive({ useHandCursor: true });
@@ -193,16 +215,9 @@ export class ForestScene extends Phaser.Scene {
     this.state = next;
     saveState(this.state);
     this.closePanel();
-    if (id === undefined) {
-      this.refreshAll();
-      return;
-    }
-    if (id === CASTLE_ID) {
-      this.buildCastle();
-    } else {
-      const zone = zoneById(id);
-      if (zone) this.buildZone(zone);
-    }
+    if (id === CASTLE_ID) this.buildCastle();
+    // Un déblocage / un palier change l'affichage d'autres régions : on resynchronise.
+    this.syncZones();
     this.updateStars();
     this.buildBilanButton();
   }

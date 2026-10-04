@@ -120,14 +120,17 @@ function drawObject(
   return c;
 }
 
+/** Etat d'affichage d'une région : ouverte, ou « disponible » (cadenas + nom). */
+export type ZoneTileMode = 'created' | 'available';
+
 /** Dessine une région : terrain (couleur de palier), objets, monument, nom, niveau. */
 export function createZoneTile(
   scene: Phaser.Scene,
   zone: ZoneDef,
-  created: boolean,
+  mode: ZoneTileMode,
   level: number,
 ): Phaser.GameObjects.Container {
-  return created ? createdTile(scene, zone, level) : lockedTile(scene, zone);
+  return mode === 'created' ? createdTile(scene, zone, level) : availableTile(scene, zone);
 }
 
 function createdTile(scene: Phaser.Scene, zone: ZoneDef, level: number): Phaser.GameObjects.Container {
@@ -168,16 +171,21 @@ function createdTile(scene: Phaser.Scene, zone: ZoneDef, level: number): Phaser.
   return c;
 }
 
-function lockedTile(scene: Phaser.Scene, zone: ZoneDef): Phaser.GameObjects.Container {
+function availableTile(scene: Phaser.Scene, zone: ZoneDef): Phaser.GameObjects.Container {
   const { w, h } = zone;
   const c = scene.add.container(0, 0);
-  c.add(scene.add.rectangle(0, 0, w, h, 0x4a5340, 0.55).setStrokeStyle(3, 0xffffff, 0.35));
-  c.add(scene.add.text(0, 0, '🔒', { fontSize: '30px' }).setOrigin(0.5));
+  c.add(scene.add.rectangle(0, 0, w, h, zone.base, 0.5).setStrokeStyle(5, 0xffe27a));
+  c.add(scene.add.text(0, -6, '🔒', { fontSize: '34px' }).setOrigin(0.5));
   c.add(
     scene.add
       .text(0, -h / 2 - 15, zone.name, { fontFamily: FONT, fontSize: '15px', color: '#ffffff' })
       .setOrigin(0.5)
       .setShadow(1, 1, '#000000', 3),
+  );
+  c.add(
+    scene.add
+      .text(0, h / 2 - 20, 'Ouvrir (1 ⭐)', { fontFamily: FONT, fontSize: '15px', color: '#2b3a1f' })
+      .setOrigin(0.5),
   );
   return c;
 }
