@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, FONT, GAME_HEIGHT } from '../theme';
+import { COLORS, FONT } from '../theme';
 import { makeButton } from './Button';
 
 export interface DebugCallbacks {
@@ -17,11 +17,11 @@ export function createDebugPanel(
   cb: DebugCallbacks,
 ): Phaser.GameObjects.Container {
   const container = scene.add.container(0, 0).setDepth(3000);
-  const y = GAME_HEIGHT - 34;
+  const y = 132;
 
   container.add(
     scene.add
-      .text(20, y - 38, 'DEBUG', { fontFamily: FONT, fontSize: '14px', color: '#ffffff' })
+      .text(20, y - 34, 'DEBUG', { fontFamily: FONT, fontSize: '14px', color: '#ffffff' })
       .setOrigin(0, 0.5),
   );
 

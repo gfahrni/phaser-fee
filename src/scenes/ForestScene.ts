@@ -168,7 +168,7 @@ export class ForestScene extends Phaser.Scene {
 
   private showToast(message: string): void {
     this.toast?.destroy();
-    const container = this.add.container(GAME_WIDTH / 2, 170).setDepth(2000);
+    const container = this.add.container(GAME_WIDTH / 2, 215).setDepth(2000);
     const text = this.add
       .text(0, 0, message, { fontFamily: FONT, fontSize: '22px', color: '#2b3a1f' })
       .setOrigin(0.5);
