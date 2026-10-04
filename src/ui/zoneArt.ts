@@ -148,6 +148,75 @@ function octagonPoints(w: number, h: number): Phaser.Geom.Point[] {
   return pts;
 }
 
+/** Hash déterministe (FNV-1a mélangé) pour générer des positions stables. */
+function hashSeed(id: string, a: number, b: number): number {
+  let h = 2166136261;
+  for (let i = 0; i < id.length; i++) {
+    h ^= id.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  h = Math.imul(h ^ Math.imul(a + 1, 2654435761), 16777619);
+  h = Math.imul(h ^ Math.imul(b + 1, 40503), 16777619);
+  return h >>> 0;
+}
+
+function rand01(seed: number): number {
+  let t = seed + 0x6d2b79f5;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+const OCT_COS = 0.9238795; // cos(22.5°)
+const OCT_DIAG = 1.3065629; // cos(22.5°) + sin(22.5°)
+
+/**
+ * Place `count` points au hasard dans l'octogone, avec un écart minimum.
+ * Déterministe : la position du i-ème objet ne change pas quand on en ajoute.
+ */
+function placePoints(
+  zoneId: string,
+  count: number,
+  halfX: number,
+  halfY: number,
+  minGap: number,
+): Array<{ x: number; y: number }> {
+  const margin = 0.9;
+  const lim = OCT_COS * margin;
+  const diag = OCT_DIAG * margin;
+  const placed: Array<{ x: number; y: number }> = [];
+
+  for (let i = 0; i < count; i++) {
+    // Repli : centre légèrement aléatoire.
+    let px = (rand01(hashSeed(zoneId, i, 7)) * 2 - 1) * halfX * 0.4;
+    let py = (rand01(hashSeed(zoneId, i, 8)) * 2 - 1) * halfY * 0.4;
+
+    for (let attempt = 0; attempt < 30; attempt++) {
+      const u = (rand01(hashSeed(zoneId, i, attempt * 2)) * 2 - 1) * lim;
+      const v = (rand01(hashSeed(zoneId, i, attempt * 2 + 1)) * 2 - 1) * lim;
+      if (Math.abs(u) + Math.abs(v) > diag) continue;
+      const x = u * halfX;
+      const y = v * halfY;
+      let ok = true;
+      for (const p of placed) {
+        const dx = p.x - x;
+        const dy = p.y - y;
+        if (dx * dx + dy * dy < minGap * minGap) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) {
+        px = x;
+        py = y;
+        break;
+      }
+    }
+    placed.push({ x: px, y: py });
+  }
+  return placed;
+}
+
 /** Etat d'affichage d'une région : ouverte, ou « disponible » (cadenas + nom). */
 export type ZoneTileMode = 'created' | 'available';
 
@@ -182,18 +251,11 @@ function createdTile(scene: Phaser.Scene, zone: ZoneDef, level: number): Phaser.
   const maxRows = Math.ceil(MAX_ITEMS / maxCols);
   const smallSize = Math.min(w / (maxCols + 0.6), h / (maxRows + 0.6)) * 0.42;
 
+  // Positions aléatoires (mais stables) dans l'octogone, avec un écart minimum.
   const items = Math.max(1, level);
-  const cols = Math.min(maxCols, items);
-  const rows = Math.ceil(items / maxCols);
-  const stepX = w / (cols + 0.6);
-  const stepY = h / (rows + 0.6);
-
-  for (let i = 0; i < items; i++) {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    const x = (col - (cols - 1) / 2) * stepX;
-    const y = (row - (rows - 1) / 2) * stepY;
-    c.add(drawObject(scene, zone.objectKind, x, y, smallSize, zone.accent));
+  const points = placePoints(zone.id, items, ow / 2, oh / 2, smallSize * 1.5);
+  for (const p of points) {
+    c.add(drawObject(scene, zone.objectKind, p.x, p.y, smallSize, zone.accent));
   }
 
   // Témoins de progrès : une grande forme centrale à 10,
