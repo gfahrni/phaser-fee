@@ -1,0 +1,19 @@
+{
+  "name": "Fée",
+  "short_name": "Fée",
+  "description": "Le jeu de gestion quotidien de la forêt de la fée.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2b3a1f",
+  "theme_color": "#2b3a1f",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
