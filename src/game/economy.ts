@@ -1,5 +1,5 @@
 import type { SaveState } from './types';
-import { CASTLE_ID, GATE_LEVEL, INNER_IDS, ZONES, zoneById } from './zones';
+import { CASTLE_ID, CASTLE_NAME, GATE_LEVEL, INNER_IDS, ZONES, zoneById } from './zones';
 
 export const MAX_LEVEL = 50;
 export const UPGRADE_COST = 1;
@@ -80,32 +80,63 @@ export function unlockElement(state: SaveState, id: string): SaveState {
 
 /** La fée gagne la journée : +3 étoiles. */
 export function fairyWins(state: SaveState): SaveState {
+  return addStars(state, STARS_PER_FAIRY_WIN);
+}
+
+/** Ajoute des étoiles. */
+export function addStars(state: SaveState, amount: number): SaveState {
   const next = clone(state);
-  next.stars += STARS_PER_FAIRY_WIN;
+  next.stars += Math.max(0, Math.floor(amount));
   return next;
 }
 
+/** Nom lisible d'un élément (région ou château). */
+export function nameOf(id: string): string {
+  if (id === CASTLE_ID) return CASTLE_NAME;
+  return zoneById(id)?.name ?? id;
+}
+
+export interface MischiefHit {
+  id: string;
+  name: string;
+  from: number;
+  to: number;
+}
+
 /**
- * La sorcière gagne : 2 Méchancetés, chacune retire 1 niveau à un élément créé
- * de niveau > 1, choisi au hasard. Jamais sous le niveau 1, jamais de destruction.
+ * Applique `count` Méchancetés : chacune retire 1 niveau à un élément créé de
+ * niveau > 1 (au hasard), jamais sous le niveau 1. Renvoie la liste des dégâts.
  */
-export function applyMischiefs(state: SaveState, rng: () => number = Math.random): SaveState {
+export function applyMischiefsDetailed(
+  state: SaveState,
+  count: number,
+  rng: () => number = Math.random,
+): { state: SaveState; hits: MischiefHit[] } {
   const next = clone(state);
+  const hits: MischiefHit[] = [];
   const candidates = Object.keys(next.elements).filter((id) => {
     const e = next.elements[id];
     return e.created && e.level > 1;
   });
 
-  for (let i = 0; i < MISCHIEFS_PER_WITCH_WIN; i++) {
+  for (let i = 0; i < count; i++) {
     if (candidates.length === 0) break;
     const idx = Math.floor(rng() * candidates.length);
     const id = candidates[idx];
-    next.elements[id].level -= 1;
-    if (next.elements[id].level <= 1) {
+    const element = next.elements[id];
+    const from = element.level;
+    element.level -= 1;
+    hits.push({ id, name: nameOf(id), from, to: element.level });
+    if (element.level <= 1) {
       candidates.splice(idx, 1);
     }
   }
-  return next;
+  return { state: next, hits };
+}
+
+/** Raccourci historique : 2 Méchancetés (une victoire de sorcière « pleine »). */
+export function applyMischiefs(state: SaveState, rng: () => number = Math.random): SaveState {
+  return applyMischiefsDetailed(state, MISCHIEFS_PER_WITCH_WIN, rng).state;
 }
 
 /** [DEBUG] Crée toutes les régions et met tout au niveau demandé (borné 1..MAX_LEVEL). */

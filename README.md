@@ -3,8 +3,9 @@
 Jeu de gestion quotidien : on développe la forêt d'une fée qui lutte contre
 une sorcière. La vue est une **carte vue du dessus** : le **Château de la Fée**
 au centre, entouré de **18 régions** (anneau intérieur puis anneau extérieur).
-Chaque soir, le bilan de la journée fait gagner soit la fée (+3 étoiles),
-soit la sorcière (2 Méchancetés).
+Chaque soir, le bilan permet de choisir un **nombre d'étoiles (0-3)** et un
+**nombre de sorcières (0-3)** : les étoiles enrichissent la fée, chaque sorcière
+casse un niveau et l'écran liste **quelles régions** ont été abîmées.
 
 Progression : chaque niveau ajoute un objet visible dans la région, chaque palier
 (tous les 10 niveaux) change la couleur et ajoute un monument. **Libre choix** :

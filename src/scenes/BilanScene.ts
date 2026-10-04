@@ -1,33 +1,18 @@
 import Phaser from 'phaser';
 import { COLORS, FONT, GAME_WIDTH, GAME_HEIGHT } from '../theme';
-import { applyBilan, canBilan, type BilanChoice } from '../game/daily';
+import { applyBilan, canBilan } from '../game/daily';
 import { loadState, saveState } from '../game/storage';
 import { isDebugEnabled, isBilanAlwaysOpen } from '../game/debug';
+import { makeButton } from '../ui/Button';
 
-interface CardDef {
-  choice: BilanChoice;
-  title: string;
-  color: number;
-  keywords: string[];
-}
+const STAR_COLOR = 0xffb020;
 
-const CARDS: CardDef[] = [
-  {
-    choice: 'fee',
-    title: 'Fée ✨',
-    color: COLORS.fairy,
-    keywords: ['Gentille', 'Courageuse', 'Forte', 'Positive'],
-  },
-  {
-    choice: 'sorciere',
-    title: 'Sorcière 🌙',
-    color: COLORS.witch,
-    keywords: ['Méchante', 'Jalouse', 'Chamailles', 'Caprices'],
-  },
-];
-
-/** Bilan du soir : on choisit fée ou sorcière (débloqué à partir de 18h). */
+/** Bilan du soir : combien d'étoiles, et combien de sorcières ? (débloqué à 18h). */
 export class BilanScene extends Phaser.Scene {
+  private stars = 3;
+  private witches = 0;
+  private content?: Phaser.GameObjects.Container;
+
   constructor() {
     super('Bilan');
   }
@@ -42,58 +27,75 @@ export class BilanScene extends Phaser.Scene {
 
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, COLORS.sky);
     this.add
-      .text(GAME_WIDTH / 2, 100, 'Aujourd’hui, tu as plutôt été…', {
+      .text(GAME_WIDTH / 2, 120, 'Le bilan du jour', {
         fontFamily: FONT,
-        fontSize: '32px',
+        fontSize: '44px',
         color: '#2b3a1f',
-        align: 'center',
-        wordWrap: { width: GAME_WIDTH - 80 },
       })
       .setOrigin(0.5);
-
-    CARDS.forEach((card, i) => {
-      const x = GAME_WIDTH / 2 + (i === 0 ? -1 : 1) * 230;
-      this.buildCard(x, 430, card);
-    });
-  }
-
-  private buildCard(x: number, y: number, card: CardDef): void {
-    const container = this.add.container(x, y);
-    const w = 300;
-    const h = 420;
-
-    const bg = this.add
-      .rectangle(0, 0, w, h, card.color)
-      .setStrokeStyle(6, 0xffffff, 0.85)
-      .setInteractive({ useHandCursor: true });
-    const title = this.add
-      .text(0, -h / 2 + 56, card.title, {
+    this.add
+      .text(GAME_WIDTH / 2, 172, 'Combien d’étoiles, et combien de sorcières ?', {
         fontFamily: FONT,
-        fontSize: '34px',
-        color: '#ffffff',
+        fontSize: '22px',
+        color: '#5a6a3a',
       })
       .setOrigin(0.5);
-    container.add([bg, title]);
-
-    card.keywords.forEach((word, i) => {
-      const kw = this.add
-        .text(0, -30 + i * 60, word, {
-          fontFamily: FONT,
-          fontSize: '26px',
-          color: '#ffffff',
-        })
-        .setOrigin(0.5);
-      container.add(kw);
-    });
-
-    bg.on('pointerdown', () => this.choose(card.choice));
+    this.render();
   }
 
-  private choose(choice: BilanChoice): void {
+  private render(): void {
+    this.content?.destroy();
+    const c = this.add.container(0, 0);
+    this.content = c;
+    c.add(
+      this.selector(360, 320, '⭐ Étoiles pour la fée', this.stars, STAR_COLOR, (v) => {
+        this.stars = v;
+        this.render();
+      }),
+    );
+    c.add(
+      this.selector(360, 470, '🌙 Sorcières méchantes', this.witches, COLORS.witch, (v) => {
+        this.witches = v;
+        this.render();
+      }),
+    );
+    c.add(
+      makeButton(this, GAME_WIDTH / 2, 650, 320, 76, 'Valider', COLORS.ink, true, () => this.validate(), 26),
+    );
+  }
+
+  private selector(
+    x: number,
+    y: number,
+    label: string,
+    value: number,
+    color: number,
+    onChange: (v: number) => void,
+  ): Phaser.GameObjects.Container {
+    const c = this.add.container(x, y);
+    c.add(
+      this.add.text(0, -60, label, { fontFamily: FONT, fontSize: '26px', color: '#2b3a1f' }).setOrigin(0, 0.5),
+    );
+    [0, 1, 2, 3].forEach((v, i) => {
+      const bx = i * 96;
+      const selected = v === value;
+      const bg = this.add
+        .rectangle(bx, 0, 76, 76, selected ? color : COLORS.disabled)
+        .setStrokeStyle(4, 0xffffff, 0.9);
+      const t = this.add
+        .text(bx, 0, String(v), { fontFamily: FONT, fontSize: '30px', color: '#ffffff' })
+        .setOrigin(0.5);
+      bg.setInteractive({ useHandCursor: true }).on('pointerdown', () => onChange(v));
+      c.add([bg, t]);
+    });
+    return c;
+  }
+
+  private validate(): void {
     const state = loadState();
     const force = isDebugEnabled() && isBilanAlwaysOpen();
-    const next = applyBilan(state, choice, new Date(), Math.random, force);
-    if (next !== state) saveState(next);
-    this.scene.start('Result', { choice });
+    const result = applyBilan(state, this.stars, this.witches, new Date(), Math.random, force);
+    if (result.applied) saveState(result.state);
+    this.scene.start('Result', { stars: result.stars, witches: result.witches, hits: result.hits });
   }
 }
