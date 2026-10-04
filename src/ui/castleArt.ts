@@ -76,8 +76,10 @@ export function createCastle(scene: Phaser.Scene, level: number): Phaser.GameObj
   c.add(battlements);
 
   const flag = scene.add.graphics();
+  flag.lineStyle(3, 0x8a5a3b, 1);
+  flag.lineBetween(0, -cr, 0, -cr - 28);
   flag.fillStyle(0xffd447, 1);
-  flag.fillTriangle(0, -cr, 0, -cr - 20, 16, -cr - 10);
+  flag.fillTriangle(0, -cr - 28, 18, -cr - 22, 0, -cr - 16);
   c.add(flag);
 
   const badge = scene.add.container(cr + 8, -cr - 8);
