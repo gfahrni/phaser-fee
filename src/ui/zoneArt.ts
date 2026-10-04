@@ -150,12 +150,27 @@ export function createZoneTile(
   return mode === 'created' ? createdTile(scene, zone, level) : availableTile(scene, zone);
 }
 
+/** Sommets d'un octogone inscrit dans une boîte w x h (bords plats haut/bas/gauche/droite). */
+function octagonPoints(w: number, h: number): Phaser.Geom.Point[] {
+  const pts: Phaser.Geom.Point[] = [];
+  for (let i = 0; i < 8; i++) {
+    const a = Phaser.Math.DegToRad(22.5 + i * 45);
+    pts.push(new Phaser.Geom.Point((Math.cos(a) * w) / 2, (Math.sin(a) * h) / 2));
+  }
+  return pts;
+}
+
 function createdTile(scene: Phaser.Scene, zone: ZoneDef, level: number): Phaser.GameObjects.Container {
   const { w, h } = zone;
   const c = scene.add.container(0, 0);
   const tier = tierForLevel(level);
 
-  const bg = scene.add.rectangle(0, 0, w, h, shade(zone.base, (tier - 1) * 0.12)).setStrokeStyle(4, shade(zone.base, -0.25));
+  const bg = scene.add.graphics();
+  const oct = octagonPoints(w, h);
+  bg.fillStyle(shade(zone.base, (tier - 1) * 0.12), 1);
+  bg.lineStyle(4, shade(zone.base, -0.25), 1);
+  bg.fillPoints(oct, true);
+  bg.strokePoints(oct, true, true);
   c.add(bg);
 
   const items = Math.max(1, level);
@@ -191,7 +206,13 @@ function createdTile(scene: Phaser.Scene, zone: ZoneDef, level: number): Phaser.
 function availableTile(scene: Phaser.Scene, zone: ZoneDef): Phaser.GameObjects.Container {
   const { w, h } = zone;
   const c = scene.add.container(0, 0);
-  c.add(scene.add.rectangle(0, 0, w, h, zone.base, 0.5).setStrokeStyle(5, 0xffe27a));
+  const bg = scene.add.graphics();
+  const oct = octagonPoints(w, h);
+  bg.fillStyle(zone.base, 0.5);
+  bg.lineStyle(5, 0xffe27a, 1);
+  bg.fillPoints(oct, true);
+  bg.strokePoints(oct, true, true);
+  c.add(bg);
   c.add(scene.add.text(0, -6, '🔒', { fontSize: '34px' }).setOrigin(0.5));
   c.add(
     scene.add
@@ -208,11 +229,12 @@ function availableTile(scene: Phaser.Scene, zone: ZoneDef): Phaser.GameObjects.C
 }
 
 function makeLevelBadge(scene: Phaser.Scene, zone: ZoneDef, level: number): Phaser.GameObjects.Container {
-  const badge = scene.add.container(zone.w / 2 - 8, -zone.h / 2 + 8);
-  badge.add(scene.add.circle(0, 0, 22, 0xffffff, 0.95).setStrokeStyle(3, shade(zone.base, -0.3)));
+  // Placé en haut au centre, juste à l'intérieur de l'octogone.
+  const badge = scene.add.container(0, -zone.h * 0.462 + 22);
+  badge.add(scene.add.circle(0, 0, 20, 0xffffff, 0.95).setStrokeStyle(3, shade(zone.base, -0.3)));
   badge.add(
     scene.add
-      .text(0, 0, String(level), { fontFamily: FONT, fontSize: '22px', color: '#2b3a1f' })
+      .text(0, 0, String(level), { fontFamily: FONT, fontSize: '21px', color: '#2b3a1f' })
       .setOrigin(0.5),
   );
   return badge;
