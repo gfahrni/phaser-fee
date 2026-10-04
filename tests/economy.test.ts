@@ -3,6 +3,7 @@ import { createInitialState } from '../src/game/state';
 import {
   applyMischiefs,
   fairyWins,
+  setAllLevels,
   unlockElement,
   upgradeElement,
   MAX_LEVEL,
@@ -55,5 +56,12 @@ describe('economy', () => {
     const s = createInitialState();
     const out = applyMischiefs(s, () => 0);
     expect(out.elements.cabane.level).toBe(1);
+  });
+
+  it('setAllLevels crée tout le monde au niveau demandé, borné au max', () => {
+    const s = setAllLevels(createInitialState(), 10);
+    expect(Object.values(s.elements).every((e) => e.created && e.level === 10)).toBe(true);
+    const capped = setAllLevels(createInitialState(), 999);
+    expect(Object.values(capped.elements).every((e) => e.level === MAX_LEVEL)).toBe(true);
   });
 });

@@ -41,6 +41,7 @@ Autre méthode : dans la console du navigateur,
 
 Le panneau propose : **+10 ⭐**, **Fée +3**, **Sorcière -2**,
 **Bilan: OUVERT / 18h** (force ou non la règle des 18h) et **Reset**.
+Une seconde rangée met **tous les éléments au niveau 10, 20, 30, 40 ou 50**.
 
 ## Déploiement
 

@@ -55,6 +55,16 @@ export function fairyWins(state: SaveState): SaveState {
   return next;
 }
 
+/** [DEBUG] Crée tous les éléments et les met au niveau demandé (borné 1..MAX_LEVEL). */
+export function setAllLevels(state: SaveState, level: number): SaveState {
+  const next = clone(state);
+  const clamped = Math.min(MAX_LEVEL, Math.max(1, Math.floor(level)));
+  for (const id of Object.keys(next.elements)) {
+    next.elements[id] = { created: true, level: clamped };
+  }
+  return next;
+}
+
 /**
  * La sorcière gagne : 2 Méchancetés, chacune retire 1 niveau à un élément créé
  * de niveau > 1, choisi au hasard. Jamais sous le niveau 1, jamais de destruction.

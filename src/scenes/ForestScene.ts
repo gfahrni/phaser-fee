@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, FONT, GAME_WIDTH, GAME_HEIGHT } from '../theme';
 import { ELEMENTS, type ElementDef } from '../game/upgrades';
-import { isCreated, levelOf, unlockElement, upgradeElement, fairyWins, applyMischiefs } from '../game/economy';
+import { isCreated, levelOf, unlockElement, upgradeElement, fairyWins, applyMischiefs, setAllLevels } from '../game/economy';
 import { canBilan, hasBilanToday, BILAN_HOUR } from '../game/daily';
 import { loadState, saveState, resetState } from '../game/storage';
 import { isDebugEnabled, isBilanAlwaysOpen, setBilanAlwaysOpen } from '../game/debug';
@@ -151,6 +151,7 @@ export class ForestScene extends Phaser.Scene {
       onAddStars: () => this.act(() => ({ ...this.state, stars: this.state.stars + 10 })),
       onFairyWin: () => this.act(() => fairyWins(this.state)),
       onWitchWin: () => this.act(() => applyMischiefs(this.state)),
+      onSetAllLevels: (level) => this.act(() => setAllLevels(this.state, level)),
       onToggleBilan: () => {
         setBilanAlwaysOpen(!isBilanAlwaysOpen());
         this.buildDebugPanel();
@@ -168,7 +169,7 @@ export class ForestScene extends Phaser.Scene {
 
   private showToast(message: string): void {
     this.toast?.destroy();
-    const container = this.add.container(GAME_WIDTH / 2, 215).setDepth(2000);
+    const container = this.add.container(GAME_WIDTH / 2, 260).setDepth(2000);
     const text = this.add
       .text(0, 0, message, { fontFamily: FONT, fontSize: '22px', color: '#2b3a1f' })
       .setOrigin(0.5);
