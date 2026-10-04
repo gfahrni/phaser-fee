@@ -74,6 +74,9 @@ export function zoneById(id: string): ZoneDef | undefined {
 /** Niveau minimum exigé sur les régions précédentes pour en débloquer une nouvelle. */
 export const GATE_LEVEL = 10;
 
+/** Facteur d'agrandissement des octogones de région (les formes gardent leur taille). */
+export const ZONE_TILE_SCALE = 1.2;
+
 /** Nombre de paliers visuels par région. */
 export const TIER_COUNT = 5;
 

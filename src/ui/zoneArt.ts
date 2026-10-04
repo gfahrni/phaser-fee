@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { FONT } from '../theme';
-import { shade, tierForLevel, type ObjectKind, type ZoneDef } from '../game/zones';
+import { ZONE_TILE_SCALE, shade, tierForLevel, type ObjectKind, type ZoneDef } from '../game/zones';
 
 const RAINBOW = [0xff6f91, 0xffd447, 0x8fd14f, 0x6fc3ff, 0xb388ff];
+const MAX_ITEMS = 50;
 
 /**
  * Dessine un petit objet d'une région, centré en (x, y), de « rayon » s.
@@ -137,19 +138,6 @@ function drawObject(
   return c;
 }
 
-/** Etat d'affichage d'une région : ouverte, ou « disponible » (cadenas + nom). */
-export type ZoneTileMode = 'created' | 'available';
-
-/** Dessine une région : terrain (couleur de palier), objets, monument, nom, niveau. */
-export function createZoneTile(
-  scene: Phaser.Scene,
-  zone: ZoneDef,
-  mode: ZoneTileMode,
-  level: number,
-): Phaser.GameObjects.Container {
-  return mode === 'created' ? createdTile(scene, zone, level) : availableTile(scene, zone);
-}
-
 /** Sommets d'un octogone inscrit dans une boîte w x h (bords plats haut/bas/gauche/droite). */
 function octagonPoints(w: number, h: number): Phaser.Geom.Point[] {
   const pts: Phaser.Geom.Point[] = [];
@@ -160,32 +148,52 @@ function octagonPoints(w: number, h: number): Phaser.Geom.Point[] {
   return pts;
 }
 
+/** Etat d'affichage d'une région : ouverte, ou « disponible » (cadenas + nom). */
+export type ZoneTileMode = 'created' | 'available';
+
+/** Dessine une région : terrain (couleur de palier), objets, monuments, nom, niveau. */
+export function createZoneTile(
+  scene: Phaser.Scene,
+  zone: ZoneDef,
+  mode: ZoneTileMode,
+  level: number,
+): Phaser.GameObjects.Container {
+  return mode === 'created' ? createdTile(scene, zone, level) : availableTile(scene, zone);
+}
+
 function createdTile(scene: Phaser.Scene, zone: ZoneDef, level: number): Phaser.GameObjects.Container {
   const { w, h } = zone;
+  // L'octogone est agrandi, mais les formes gardent leur taille d'origine.
+  const ow = w * ZONE_TILE_SCALE;
+  const oh = h * ZONE_TILE_SCALE;
   const c = scene.add.container(0, 0);
   const tier = tierForLevel(level);
 
   const bg = scene.add.graphics();
-  const oct = octagonPoints(w, h);
+  const oct = octagonPoints(ow, oh);
   bg.fillStyle(shade(zone.base, (tier - 1) * 0.12), 1);
   bg.lineStyle(4, shade(zone.base, -0.25), 1);
   bg.fillPoints(oct, true);
   bg.strokePoints(oct, true, true);
   c.add(bg);
 
+  // Taille définitive des petites formes (celle du niveau 50), dès le début.
+  const maxCols = 8;
+  const maxRows = Math.ceil(MAX_ITEMS / maxCols);
+  const smallSize = Math.min(w / (maxCols + 0.6), h / (maxRows + 0.6)) * 0.42;
+
   const items = Math.max(1, level);
-  const cols = Math.min(8, items);
-  const rows = Math.ceil(items / 8);
+  const cols = Math.min(maxCols, items);
+  const rows = Math.ceil(items / maxCols);
   const stepX = w / (cols + 0.6);
   const stepY = h / (rows + 0.6);
-  const size = Math.min(stepX, stepY) * 0.42;
 
   for (let i = 0; i < items; i++) {
     const col = i % cols;
     const row = Math.floor(i / cols);
     const x = (col - (cols - 1) / 2) * stepX;
     const y = (row - (rows - 1) / 2) * stepY;
-    c.add(drawObject(scene, zone.objectKind, x, y, size, zone.accent));
+    c.add(drawObject(scene, zone.objectKind, x, y, smallSize, zone.accent));
   }
 
   // Témoins de progrès : une grande forme centrale à 10,
@@ -196,7 +204,7 @@ function createdTile(scene: Phaser.Scene, zone: ZoneDef, level: number): Phaser.
   }
   const corners: Array<[number, number]> = [
     [-0.22 * w, -0.22 * h], // 20 : haut-gauche
-    [0.22 * w, -0.22 * h], // 30 : haut-droite
+    [0.22 * w, -0.22 * h], // 30 : haut-droit
     [0.22 * w, 0.22 * h], // 40 : bas-droite
     [-0.22 * w, 0.22 * h], // 50 : bas-gauche
   ];
@@ -208,19 +216,21 @@ function createdTile(scene: Phaser.Scene, zone: ZoneDef, level: number): Phaser.
 
   c.add(
     scene.add
-      .text(0, -h / 2 - 15, zone.name, { fontFamily: FONT, fontSize: '15px', color: '#ffffff' })
+      .text(0, -oh / 2 - 15, zone.name, { fontFamily: FONT, fontSize: '15px', color: '#ffffff' })
       .setOrigin(0.5)
       .setShadow(1, 1, '#000000', 3),
   );
-  c.add(makeLevelBadge(scene, zone, level));
+  c.add(makeLevelBadge(scene, zone, level, oh));
   return c;
 }
 
 function availableTile(scene: Phaser.Scene, zone: ZoneDef): Phaser.GameObjects.Container {
   const { w, h } = zone;
+  const ow = w * ZONE_TILE_SCALE;
+  const oh = h * ZONE_TILE_SCALE;
   const c = scene.add.container(0, 0);
   const bg = scene.add.graphics();
-  const oct = octagonPoints(w, h);
+  const oct = octagonPoints(ow, oh);
   bg.fillStyle(zone.base, 0.5);
   bg.lineStyle(5, 0xffe27a, 1);
   bg.fillPoints(oct, true);
@@ -229,21 +239,26 @@ function availableTile(scene: Phaser.Scene, zone: ZoneDef): Phaser.GameObjects.C
   c.add(scene.add.text(0, -6, '🔒', { fontSize: '34px' }).setOrigin(0.5));
   c.add(
     scene.add
-      .text(0, -h / 2 - 15, zone.name, { fontFamily: FONT, fontSize: '15px', color: '#ffffff' })
+      .text(0, -oh / 2 - 15, zone.name, { fontFamily: FONT, fontSize: '15px', color: '#ffffff' })
       .setOrigin(0.5)
       .setShadow(1, 1, '#000000', 3),
   );
   c.add(
     scene.add
-      .text(0, h / 2 - 20, 'Ouvrir (1 ⭐)', { fontFamily: FONT, fontSize: '15px', color: '#2b3a1f' })
+      .text(0, oh / 2 - 20, 'Ouvrir (1 ⭐)', { fontFamily: FONT, fontSize: '15px', color: '#2b3a1f' })
       .setOrigin(0.5),
   );
   return c;
 }
 
-function makeLevelBadge(scene: Phaser.Scene, zone: ZoneDef, level: number): Phaser.GameObjects.Container {
+function makeLevelBadge(
+  scene: Phaser.Scene,
+  zone: ZoneDef,
+  level: number,
+  octHeight: number,
+): Phaser.GameObjects.Container {
   // Placé en haut au centre, juste à l'intérieur de l'octogone.
-  const badge = scene.add.container(0, -zone.h * 0.462 + 22);
+  const badge = scene.add.container(0, -octHeight * 0.462 + 22);
   badge.add(scene.add.circle(0, 0, 20, 0xffffff, 0.95).setStrokeStyle(3, shade(zone.base, -0.3)));
   badge.add(
     scene.add

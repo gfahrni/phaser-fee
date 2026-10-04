@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { COLORS, FONT, GAME_WIDTH, GAME_HEIGHT } from '../theme';
-import { ZONES, zoneById, CASTLE_ID, CASTLE_NAME, type ZoneDef } from '../game/zones';
+import { ZONES, zoneById, CASTLE_ID, CASTLE_NAME, ZONE_TILE_SCALE, type ZoneDef } from '../game/zones';
 import {
   isCreated,
   levelOf,
@@ -119,7 +119,7 @@ export class ForestScene extends Phaser.Scene {
         : createZoneTile(this, zone, 'available', 0),
     );
     const hit = this.add
-      .rectangle(0, 0, zone.w, zone.h, 0xffffff, 0.001)
+      .rectangle(0, 0, zone.w * ZONE_TILE_SCALE, zone.h * ZONE_TILE_SCALE, 0xffffff, 0.001)
       .setInteractive({ useHandCursor: true });
     hit.on('pointerdown', () => this.openPanel(zone.id));
     node.add(hit);
