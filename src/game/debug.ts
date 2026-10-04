@@ -4,9 +4,12 @@
  * Il ajoute un panneau de boutons et permet d'ouvrir le bilan à toute heure.
  */
 let overrideBilanOpen: boolean | null = null;
+/** Débloqué par le cheat code pendant la session (en plus du flag persistant). */
+let cheatUnlocked = false;
 
 export function isDebugEnabled(): boolean {
   if (typeof window === 'undefined') return false;
+  if (cheatUnlocked) return true;
   if (import.meta.env.DEV) return true;
   try {
     const url = new URL(window.location.href);
@@ -14,6 +17,26 @@ export function isDebugEnabled(): boolean {
     return localStorage.getItem('fee.debug') === '1';
   } catch {
     return false;
+  }
+}
+
+/** Active le debug (cheat code) et le mémorise pour les prochaines ouvertures. */
+export function enableDebugPersistent(): void {
+  cheatUnlocked = true;
+  try {
+    localStorage.setItem('fee.debug', '1');
+  } catch {
+    // ignore
+  }
+}
+
+/** Désactive le debug (flag persistant + session). */
+export function disableDebug(): void {
+  cheatUnlocked = false;
+  try {
+    localStorage.removeItem('fee.debug');
+  } catch {
+    // ignore
   }
 }
 

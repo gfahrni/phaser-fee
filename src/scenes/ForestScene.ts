@@ -14,7 +14,8 @@ import {
 } from '../game/economy';
 import { canBilan, hasBilanToday, BILAN_HOUR } from '../game/daily';
 import { loadState, saveState, resetState } from '../game/storage';
-import { isDebugEnabled, isBilanAlwaysOpen, setBilanAlwaysOpen } from '../game/debug';
+import { isDebugEnabled, isBilanAlwaysOpen, setBilanAlwaysOpen, disableDebug } from '../game/debug';
+import { cheatBilanTap, cheatCastleTap } from '../game/cheat';
 import type { SaveState } from '../game/types';
 import { createZoneTile, createZoneLabel } from '../ui/zoneArt';
 import { createCastle } from '../ui/castleArt';
@@ -201,6 +202,11 @@ export class ForestScene extends Phaser.Scene {
   }
 
   private onBilanClick(): void {
+    if (!this.debugEnabled && cheatBilanTap()) {
+      this.syncDebug();
+      this.showToast('Mode debug activé 🔧');
+      return;
+    }
     const now = new Date();
     const force = this.bilanForcedOpen();
     if (canBilan(this.state, now, force)) {
@@ -214,6 +220,7 @@ export class ForestScene extends Phaser.Scene {
 
   private openPanel(id: string): void {
     if (this.panel) return;
+    if (id === CASTLE_ID && !this.debugEnabled) cheatCastleTap();
     const isCastle = id === CASTLE_ID;
     const zone = zoneById(id);
     const created = isCreated(this.state, id);
@@ -275,12 +282,28 @@ export class ForestScene extends Phaser.Scene {
         this.buildDebugPanel();
         this.buildBilanButton();
       },
+      onExitDebug: () => {
+        disableDebug();
+        this.syncDebug();
+      },
       onReset: () => {
         this.state = resetState();
         this.closePanel();
         this.refreshAll();
       },
     });
+  }
+
+  /** Réapplique l'état du mode debug (activation par cheat code ou sortie). */
+  private syncDebug(): void {
+    this.debugEnabled = isDebugEnabled();
+    if (this.debugEnabled) {
+      this.buildDebugPanel();
+    } else {
+      this.debugPanel?.destroy();
+      this.debugPanel = undefined;
+    }
+    this.buildBilanButton();
   }
 
   private showToast(message: string): void {

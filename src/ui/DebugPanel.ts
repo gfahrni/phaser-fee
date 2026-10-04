@@ -10,6 +10,7 @@ export interface DebugCallbacks {
   onReset: () => void;
   onSetAllLevels: (level: number) => void;
   onUnlockAll: () => void;
+  onExitDebug: () => void;
   bilanOpen: boolean;
 }
 
@@ -54,6 +55,8 @@ export function createDebugPanel(
     panel.add(makeButton(scene, lx + lw / 2, row2Y, lw, 40, String(level), 0x2b6fa8, true, () => cb.onSetAllLevels(level), 15));
     lx += lw + gap;
   }
+
+  panel.add(makeButton(scene, 1040, row2Y, 220, 40, 'Quitter debug', 0xb03030, true, cb.onExitDebug, 15));
 
   root.add(
     makeButton(scene, 85, 92, 130, 36, '🔧 Debug', 0x333333, true, () => panel.setVisible(!panel.visible), 15),

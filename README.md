@@ -49,6 +49,11 @@ https://gfahrni.github.io/phaser-fee/?debug
 Autre méthode : dans la console du navigateur,
 `localStorage.setItem('fee.debug','1')` puis recharger.
 
+**Cheat code** (utile dans l'app installée sur l'iPad, sans outil) :
+appuyer **3× sur le bouton Bilan**, puis **ouvrir/fermer le château 3×**,
+puis **3× sur Bilan**. Le panneau debug s'ouvre. Le bouton **Quitter debug**
+le referme (et efface le réglage).
+
 Le panneau propose : **+10 ⭐**, **Fée +3**, **Sorcière -2**,
 **Bilan: OUVERT / 18h** (force ou non la règle des 18h), **Tout ouvrir**
 (débloque toutes les régions) et **Reset**. Une seconde rangée met **tout au
