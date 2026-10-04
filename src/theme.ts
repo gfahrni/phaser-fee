@@ -22,6 +22,6 @@ export const COLORS = {
 /** Police ronde, avec repli système si la police n'est pas disponible. */
 export const FONT = '"Fredoka", "Baloo 2", "Trebuchet MS", system-ui, sans-serif';
 
-/** Résolution de design (portrait iPad). */
-export const GAME_WIDTH = 768;
-export const GAME_HEIGHT = 1024;
+/** Résolution de design (paysage iPad). */
+export const GAME_WIDTH = 1024;
+export const GAME_HEIGHT = 768;

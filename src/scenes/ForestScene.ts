@@ -32,11 +32,12 @@ export class ForestScene extends Phaser.Scene {
 
   private drawBackground(): void {
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, COLORS.sky);
-    this.add.circle(GAME_WIDTH - 120, 140, 70, COLORS.sun, 0.9);
-    this.add.ellipse(150, 620, 700, 300, COLORS.groundDark, 0.5);
-    this.add.ellipse(650, 640, 700, 320, COLORS.groundDark, 0.4);
-    this.add.rectangle(GAME_WIDTH / 2, (600 + GAME_HEIGHT) / 2, GAME_WIDTH, GAME_HEIGHT - 600, COLORS.ground);
-    this.add.rectangle(GAME_WIDTH / 2, 600, GAME_WIDTH, 30, COLORS.grass);
+    const horizon = 430;
+    this.add.circle(GAME_WIDTH - 140, 130, 70, COLORS.sun, 0.9);
+    this.add.ellipse(260, horizon, 900, 300, COLORS.groundDark, 0.5);
+    this.add.ellipse(760, horizon + 10, 900, 320, COLORS.groundDark, 0.4);
+    this.add.rectangle(GAME_WIDTH / 2, (horizon + GAME_HEIGHT) / 2, GAME_WIDTH, GAME_HEIGHT - horizon, COLORS.ground);
+    this.add.rectangle(GAME_WIDTH / 2, horizon, GAME_WIDTH, 30, COLORS.grass);
   }
 
   private buildElements(): void {

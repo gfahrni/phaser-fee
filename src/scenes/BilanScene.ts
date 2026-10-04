@@ -40,7 +40,7 @@ export class BilanScene extends Phaser.Scene {
 
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, COLORS.sky);
     this.add
-      .text(GAME_WIDTH / 2, 130, 'Aujourd’hui, tu as plutôt été…', {
+      .text(GAME_WIDTH / 2, 110, 'Aujourd’hui, tu as plutôt été…', {
         fontFamily: FONT,
         fontSize: '32px',
         color: '#2b3a1f',
@@ -50,8 +50,8 @@ export class BilanScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     CARDS.forEach((card, i) => {
-      const x = GAME_WIDTH / 2 + (i === 0 ? -1 : 1) * 180;
-      this.buildCard(x, 520, card);
+      const x = GAME_WIDTH / 2 + (i === 0 ? -1 : 1) * 200;
+      this.buildCard(x, 440, card);
     });
   }
 
