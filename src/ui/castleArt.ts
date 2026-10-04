@@ -1,16 +1,35 @@
 import Phaser from 'phaser';
 import { FONT } from '../theme';
 
+/** Sommets d'un octogone régulier (bords plats haut/bas/gauche/droite). */
+function octagonPoints(radius: number, dx = 0, dy = 0): Phaser.Geom.Point[] {
+  const pts: Phaser.Geom.Point[] = [];
+  for (let i = 0; i < 8; i++) {
+    const a = Phaser.Math.DegToRad(22.5 + i * 45);
+    pts.push(new Phaser.Geom.Point(Math.cos(a) * radius + dx, Math.sin(a) * radius + dy));
+  }
+  return pts;
+}
+
 /**
- * Château vu du dessus : une tour centrale + 4 tours (N, E, S, O).
+ * Château vu du dessus : une enceinte octogonale + une tour centrale, et 4 tours rondes (N, E, S, O).
  * Niveaux 1-10 : la tour centrale. Niveaux 11-50 : les 4 tours, 10 niveaux chacune.
  */
 export function createCastle(scene: Phaser.Scene, level: number): Phaser.GameObjects.Container {
   const c = scene.add.container(0, 0);
 
-  c.add(scene.add.circle(3, 4, 106, 0x6f6a5e, 0.5));
-  c.add(scene.add.circle(0, 0, 104, 0x9a9488));
-  c.add(scene.add.circle(0, 0, 96, 0xcfc9bd));
+  const shadow = scene.add.graphics();
+  shadow.fillStyle(0x6f6a5e, 0.5);
+  shadow.fillPoints(octagonPoints(106, 3, 4), true);
+  c.add(shadow);
+  const outer = scene.add.graphics();
+  outer.fillStyle(0x9a9488, 1);
+  outer.fillPoints(octagonPoints(104), true);
+  c.add(outer);
+  const inner = scene.add.graphics();
+  inner.fillStyle(0xcfc9bd, 1);
+  inner.fillPoints(octagonPoints(94), true);
+  c.add(inner);
 
   const dirs = [
     { dx: 0, dy: -1 },
