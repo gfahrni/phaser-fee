@@ -188,10 +188,23 @@ function createdTile(scene: Phaser.Scene, zone: ZoneDef, level: number): Phaser.
     c.add(drawObject(scene, zone.objectKind, x, y, size, zone.accent));
   }
 
-  // Palier ≥ 3 : un « monument » apparaît (vrai progrès visuel).
-  if (tier >= 3) {
-    c.add(drawObject(scene, zone.objectKind, 0, 0, Math.min(w, h) * 0.2, shade(zone.accent, -0.35)));
+  // Témoins de progrès : une grande forme centrale à 10,
+  // puis 4 formes moyennes en carré (20, 30, 40, 50).
+  const base = Math.min(w, h);
+  if (level >= 10) {
+    c.add(drawObject(scene, zone.objectKind, 0, 0, base * 0.2, shade(zone.accent, -0.35)));
   }
+  const corners: Array<[number, number]> = [
+    [-0.22 * w, -0.22 * h], // 20 : haut-gauche
+    [0.22 * w, -0.22 * h], // 30 : haut-droite
+    [0.22 * w, 0.22 * h], // 40 : bas-droite
+    [-0.22 * w, 0.22 * h], // 50 : bas-gauche
+  ];
+  corners.forEach(([cx, cy], i) => {
+    if (level >= 20 + i * 10) {
+      c.add(drawObject(scene, zone.objectKind, cx, cy, base * 0.115, shade(zone.accent, -0.2)));
+    }
+  });
 
   c.add(
     scene.add
