@@ -16,13 +16,13 @@ const CARDS: CardDef[] = [
     choice: 'fee',
     title: 'Fée ✨',
     color: COLORS.fairy,
-    keywords: ['douce', 'courageuse', 'aidante', 'calme'],
+    keywords: ['Gentille', 'Courageuse', 'Forte', 'Positive'],
   },
   {
     choice: 'sorciere',
     title: 'Sorcière 🌙',
     color: COLORS.witch,
-    keywords: ['en colère', 'disputes', 'bouderie', 'caprices'],
+    keywords: ['Méchante', 'Jalouse', 'Chamailles', 'Caprices'],
   },
 ];
 
