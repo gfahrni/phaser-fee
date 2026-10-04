@@ -69,9 +69,21 @@ function drawObject(
     }
     case 'shell': {
       const g = scene.add.graphics();
+      const cy = s * 0.45;
+      const n = 8;
+      const pts: Phaser.Geom.Point[] = [new Phaser.Geom.Point(0, cy)];
+      for (let i = 0; i <= n; i++) {
+        const a = Math.PI + (Math.PI * i) / n;
+        pts.push(new Phaser.Geom.Point(Math.cos(a) * s, cy + Math.sin(a) * s));
+      }
       g.fillStyle(color, 1);
-      g.slice(0, 0, s, Phaser.Math.DegToRad(180), Phaser.Math.DegToRad(360), false);
-      g.fillPath();
+      g.fillPoints(pts, true);
+      g.lineStyle(Math.max(1, s * 0.08), 0xffffff, 0.5);
+      for (let i = 1; i < n; i++) {
+        const a = Math.PI + (Math.PI * i) / n;
+        g.lineBetween(0, cy, Math.cos(a) * s * 0.92, cy + Math.sin(a) * s * 0.92);
+      }
+      c.add(g);
       break;
     }
     case 'palm': {
@@ -87,10 +99,15 @@ function drawObject(
     case 'rainbow': {
       const g = scene.add.graphics();
       for (let i = 0; i < RAINBOW.length; i++) {
-        g.lineStyle(s * 0.24, RAINBOW[i], 1);
-        g.beginPath();
-        g.arc(0, s * 0.5, s - i * s * 0.24, Math.PI, Math.PI * 2);
-        g.strokePath();
+        const radius = s - i * s * 0.24;
+        const pts: Phaser.Geom.Point[] = [];
+        const n = 12;
+        for (let k = 0; k <= n; k++) {
+          const a = Math.PI + (Math.PI * k) / n;
+          pts.push(new Phaser.Geom.Point(Math.cos(a) * radius, s * 0.5 + Math.sin(a) * radius));
+        }
+        g.lineStyle(s * 0.2, RAINBOW[i], 1);
+        g.strokePoints(pts, false, false);
       }
       c.add(g);
       break;
