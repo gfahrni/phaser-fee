@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { FONT } from '../theme';
-import { CASTLE_NAME } from '../game/zones';
 
 /**
  * Château vu du dessus : une tour centrale + 4 tours (N, E, S, O).
@@ -63,13 +62,6 @@ export function createCastle(scene: Phaser.Scene, level: number): Phaser.GameObj
       .setOrigin(0.5),
   );
   c.add(badge);
-
-  c.add(
-    scene.add
-      .text(0, -134, CASTLE_NAME, { fontFamily: FONT, fontSize: '17px', color: '#ffffff' })
-      .setOrigin(0.5)
-      .setShadow(1, 1, '#000000', 3),
-  );
 
   return c;
 }

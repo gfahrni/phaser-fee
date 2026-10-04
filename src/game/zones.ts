@@ -48,18 +48,18 @@ export const ZONES: ZoneDef[] = [
   { id: 'lucioles', name: 'Clairière des lucioles', ring: 'inner', base: 0x24304f, accent: 0xffe066, objectKind: 'light', x: 365, y: 352, w: 168, h: 140 },
 
   // --- Anneau extérieur (12) ---
-  { id: 'licornes', name: 'Prairies des licornes', ring: 'outer', base: 0xb9a7e0, accent: 0xffb3e6, objectKind: 'unicorn', x: 1085, y: 445, w: 150, h: 128 },
-  { id: 'neige', name: 'Pics enneigés', ring: 'outer', base: 0xbcd6e8, accent: 0xffffff, objectKind: 'tree', x: 1019, y: 595, w: 150, h: 128 },
-  { id: 'glace', name: 'Pays de glace', ring: 'outer', base: 0x8fd0ff, accent: 0xcdefff, objectKind: 'crystal', x: 838, y: 705, w: 150, h: 128 },
-  { id: 'lac', name: 'Lac aux nénuphars', ring: 'outer', base: 0x3f8fb0, accent: 0x9fe0c0, objectKind: 'flower', x: 590, y: 745, w: 150, h: 128 },
-  { id: 'sirenes', name: 'Crique des sirènes', ring: 'outer', base: 0x2fb0a8, accent: 0xffd9a0, objectKind: 'shell', x: 343, y: 705, w: 150, h: 128 },
-  { id: 'dunes', name: 'Dunes dorées', ring: 'outer', base: 0xe0c07a, accent: 0x8bc34a, objectKind: 'palm', x: 161, y: 595, w: 150, h: 128 },
-  { id: 'arcenciel', name: 'Vallée des arcs-en-ciel', ring: 'outer', base: 0xa9d0ff, accent: 0xff6f91, objectKind: 'rainbow', x: 95, y: 445, w: 150, h: 128 },
-  { id: 'cristaux', name: 'Grotte de cristaux', ring: 'outer', base: 0x5a4a8f, accent: 0x9fe8ff, objectKind: 'crystal', x: 161, y: 295, w: 150, h: 128 },
-  { id: 'lune', name: 'Jardin de lune', ring: 'outer', base: 0x1f2a4a, accent: 0xd7b3ff, objectKind: 'light', x: 343, y: 185, w: 150, h: 128 },
-  { id: 'papillons', name: 'Plaine des papillons', ring: 'outer', base: 0xbfe0b0, accent: 0xff9ecb, objectKind: 'butterfly', x: 590, y: 145, w: 150, h: 128 },
-  { id: 'lapins', name: 'Village des lapins', ring: 'outer', base: 0x9c7a52, accent: 0xfff0e0, objectKind: 'bunny', x: 838, y: 185, w: 150, h: 128 },
-  { id: 'bonbons', name: 'Pays des bonbons', ring: 'outer', base: 0xffb3d9, accent: 0x9fe0c0, objectKind: 'candy', x: 1019, y: 295, w: 150, h: 128 },
+  { id: 'licornes', name: 'Prairies des licornes', ring: 'outer', base: 0xb9a7e0, accent: 0xffb3e6, objectKind: 'unicorn', x: 1073, y: 523, w: 150, h: 128 },
+  { id: 'neige', name: 'Pics enneigés', ring: 'outer', base: 0xbcd6e8, accent: 0xffffff, objectKind: 'tree', x: 944, y: 657, w: 150, h: 128 },
+  { id: 'glace', name: 'Pays de glace', ring: 'outer', base: 0x8fd0ff, accent: 0xcdefff, objectKind: 'crystal', x: 719, y: 735, w: 150, h: 128 },
+  { id: 'lac', name: 'Lac aux nénuphars', ring: 'outer', base: 0x3f8fb0, accent: 0x9fe0c0, objectKind: 'flower', x: 461, y: 735, w: 150, h: 128 },
+  { id: 'sirenes', name: 'Crique des sirènes', ring: 'outer', base: 0x2fb0a8, accent: 0xffd9a0, objectKind: 'shell', x: 236, y: 657, w: 150, h: 128 },
+  { id: 'dunes', name: 'Dunes dorées', ring: 'outer', base: 0xe0c07a, accent: 0x8bc34a, objectKind: 'palm', x: 107, y: 523, w: 150, h: 128 },
+  { id: 'arcenciel', name: 'Vallée des arcs-en-ciel', ring: 'outer', base: 0xa9d0ff, accent: 0xff6f91, objectKind: 'rainbow', x: 107, y: 367, w: 150, h: 128 },
+  { id: 'cristaux', name: 'Grotte de cristaux', ring: 'outer', base: 0x5a4a8f, accent: 0x9fe8ff, objectKind: 'crystal', x: 236, y: 233, w: 150, h: 128 },
+  { id: 'lune', name: 'Jardin de lune', ring: 'outer', base: 0x1f2a4a, accent: 0xd7b3ff, objectKind: 'light', x: 461, y: 155, w: 150, h: 128 },
+  { id: 'papillons', name: 'Plaine des papillons', ring: 'outer', base: 0xbfe0b0, accent: 0xff9ecb, objectKind: 'butterfly', x: 719, y: 155, w: 150, h: 128 },
+  { id: 'lapins', name: 'Village des lapins', ring: 'outer', base: 0x9c7a52, accent: 0xfff0e0, objectKind: 'bunny', x: 944, y: 233, w: 150, h: 128 },
+  { id: 'bonbons', name: 'Pays des bonbons', ring: 'outer', base: 0xffb3d9, accent: 0x9fe0c0, objectKind: 'candy', x: 1073, y: 367, w: 150, h: 128 },
 ];
 
 export const INNER_IDS = ZONES.filter((z) => z.ring === 'inner').map((z) => z.id);

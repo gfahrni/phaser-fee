@@ -16,7 +16,7 @@ import { canBilan, hasBilanToday, BILAN_HOUR } from '../game/daily';
 import { loadState, saveState, resetState } from '../game/storage';
 import { isDebugEnabled, isBilanAlwaysOpen, setBilanAlwaysOpen } from '../game/debug';
 import type { SaveState } from '../game/types';
-import { createZoneTile } from '../ui/zoneArt';
+import { createZoneTile, createZoneLabel } from '../ui/zoneArt';
 import { createCastle } from '../ui/castleArt';
 import { createUpgradePanel } from '../ui/UpgradePanel';
 import { createDebugPanel } from '../ui/DebugPanel';
@@ -29,9 +29,12 @@ const CASTLE_Y = 445;
 export class ForestScene extends Phaser.Scene {
   private state!: SaveState;
   private mapLayer!: Phaser.GameObjects.Container;
+  private labelLayer!: Phaser.GameObjects.Container;
   private zoneNodes = new Map<string, Phaser.GameObjects.Container>();
+  private zoneLabels = new Map<string, Phaser.GameObjects.Container>();
   private zoneMeta = new Map<string, string>();
   private castleNode?: Phaser.GameObjects.Container;
+  private castleLabel?: Phaser.GameObjects.Text;
   private starsText!: Phaser.GameObjects.Text;
   private bilanButton?: Phaser.GameObjects.Container;
   private panel?: Phaser.GameObjects.Container;
@@ -48,6 +51,7 @@ export class ForestScene extends Phaser.Scene {
     this.state = loadState();
     this.drawBackground();
     this.mapLayer = this.add.container(0, 0);
+    this.labelLayer = this.add.container(0, 0);
     this.buildMap();
     this.buildHud();
     if (this.debugEnabled) this.buildDebugPanel();
@@ -75,9 +79,12 @@ export class ForestScene extends Phaser.Scene {
 
   private buildMap(): void {
     this.mapLayer.removeAll(true);
+    this.labelLayer.removeAll(true);
     this.zoneNodes.clear();
+    this.zoneLabels.clear();
     this.zoneMeta.clear();
     this.castleNode = undefined;
+    this.castleLabel = undefined;
     this.buildCastle();
     this.syncZones();
   }
@@ -91,6 +98,13 @@ export class ForestScene extends Phaser.Scene {
     node.add(hit);
     this.mapLayer.add(node);
     this.castleNode = node;
+
+    this.castleLabel?.destroy();
+    this.castleLabel = this.add
+      .text(CASTLE_X, CASTLE_Y - 140, CASTLE_NAME, { fontFamily: FONT, fontSize: '17px', color: '#ffffff' })
+      .setOrigin(0.5)
+      .setShadow(1, 1, '#000000', 3);
+    this.labelLayer.add(this.castleLabel);
   }
 
   /**
@@ -109,7 +123,9 @@ export class ForestScene extends Phaser.Scene {
     this.zoneMeta.set(zone.id, key);
 
     this.zoneNodes.get(zone.id)?.destroy();
+    this.zoneLabels.get(zone.id)?.destroy();
     this.zoneNodes.delete(zone.id);
+    this.zoneLabels.delete(zone.id);
     if (key === 'hidden') return;
 
     const node = this.add.container(zone.x, zone.y);
@@ -125,6 +141,18 @@ export class ForestScene extends Phaser.Scene {
     node.add(hit);
     this.mapLayer.add(node);
     this.zoneNodes.set(zone.id, node);
+
+    const label = this.add.container(zone.x, zone.y);
+    label.add(
+      createZoneLabel(
+        this,
+        zone,
+        created ? 'created' : 'available',
+        levelOf(this.state, zone.id),
+      ),
+    );
+    this.labelLayer.add(label);
+    this.zoneLabels.set(zone.id, label);
   }
 
   private buildHud(): void {

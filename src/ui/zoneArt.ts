@@ -214,13 +214,6 @@ function createdTile(scene: Phaser.Scene, zone: ZoneDef, level: number): Phaser.
     }
   });
 
-  c.add(
-    scene.add
-      .text(0, -oh / 2 - 15, zone.name, { fontFamily: FONT, fontSize: '15px', color: '#ffffff' })
-      .setOrigin(0.5)
-      .setShadow(1, 1, '#000000', 3),
-  );
-  c.add(makeLevelBadge(scene, zone, level, oh));
   return c;
 }
 
@@ -237,33 +230,42 @@ function availableTile(scene: Phaser.Scene, zone: ZoneDef): Phaser.GameObjects.C
   bg.strokePoints(oct, true, true);
   c.add(bg);
   c.add(scene.add.text(0, -6, '🔒', { fontSize: '34px' }).setOrigin(0.5));
+  return c;
+}
+
+/**
+ * Nom + badge de niveau (+ « Ouvrir ») dans une couche séparée, dessinée
+ * AU-DESSUS de toutes les régions pour qu'aucun label ne soit recouvert.
+ */
+export function createZoneLabel(
+  scene: Phaser.Scene,
+  zone: ZoneDef,
+  mode: ZoneTileMode,
+  level: number,
+): Phaser.GameObjects.Container {
+  const oh = zone.h * ZONE_TILE_SCALE;
+  const c = scene.add.container(0, 0);
   c.add(
     scene.add
       .text(0, -oh / 2 - 15, zone.name, { fontFamily: FONT, fontSize: '15px', color: '#ffffff' })
       .setOrigin(0.5)
       .setShadow(1, 1, '#000000', 3),
   );
-  c.add(
-    scene.add
-      .text(0, oh / 2 - 20, 'Ouvrir (1 ⭐)', { fontFamily: FONT, fontSize: '15px', color: '#2b3a1f' })
-      .setOrigin(0.5),
-  );
+  if (mode === 'created') {
+    const badge = scene.add.container(0, -oh * 0.462 + 22);
+    badge.add(scene.add.circle(0, 0, 20, 0xffffff, 0.95).setStrokeStyle(3, shade(zone.base, -0.3)));
+    badge.add(
+      scene.add
+        .text(0, 0, String(level), { fontFamily: FONT, fontSize: '21px', color: '#2b3a1f' })
+        .setOrigin(0.5),
+    );
+    c.add(badge);
+  } else {
+    c.add(
+      scene.add
+        .text(0, oh / 2 - 20, 'Ouvrir (1 ⭐)', { fontFamily: FONT, fontSize: '15px', color: '#2b3a1f' })
+        .setOrigin(0.5),
+    );
+  }
   return c;
-}
-
-function makeLevelBadge(
-  scene: Phaser.Scene,
-  zone: ZoneDef,
-  level: number,
-  octHeight: number,
-): Phaser.GameObjects.Container {
-  // Placé en haut au centre, juste à l'intérieur de l'octogone.
-  const badge = scene.add.container(0, -octHeight * 0.462 + 22);
-  badge.add(scene.add.circle(0, 0, 20, 0xffffff, 0.95).setStrokeStyle(3, shade(zone.base, -0.3)));
-  badge.add(
-    scene.add
-      .text(0, 0, String(level), { fontFamily: FONT, fontSize: '21px', color: '#2b3a1f' })
-      .setOrigin(0.5),
-  );
-  return badge;
 }
