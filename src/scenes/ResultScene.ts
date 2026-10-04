@@ -26,7 +26,7 @@ export class ResultScene extends Phaser.Scene {
       : 'Elle a abîmé 2 éléments.\nMais demain est un nouveau jour 💛';
 
     this.add
-      .text(GAME_WIDTH / 2, 240, title, {
+      .text(GAME_WIDTH / 2, 210, title, {
         fontFamily: FONT,
         fontSize: '46px',
         color: '#ffffff',
@@ -35,7 +35,7 @@ export class ResultScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(GAME_WIDTH / 2, 390, message, {
+      .text(GAME_WIDTH / 2, 360, message, {
         fontFamily: FONT,
         fontSize: '30px',
         color: '#ffffff',
@@ -47,7 +47,7 @@ export class ResultScene extends Phaser.Scene {
     const btn = makeButton(
       this,
       GAME_WIDTH / 2,
-      610,
+      580,
       360,
       76,
       'Retour à la forêt',

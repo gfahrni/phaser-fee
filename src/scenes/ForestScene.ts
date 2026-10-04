@@ -1,20 +1,36 @@
 import Phaser from 'phaser';
 import { COLORS, FONT, GAME_WIDTH, GAME_HEIGHT } from '../theme';
-import { ELEMENTS, type ElementDef } from '../game/upgrades';
-import { isCreated, levelOf, unlockElement, upgradeElement, fairyWins, applyMischiefs, setAllLevels } from '../game/economy';
+import { ZONES, zoneById, CASTLE_ID, CASTLE_NAME, type ZoneDef } from '../game/zones';
+import {
+  isCreated,
+  levelOf,
+  unlockElement,
+  upgradeElement,
+  unlockBlockReason,
+  fairyWins,
+  applyMischiefs,
+  setAllLevels,
+  unlockAllZones,
+} from '../game/economy';
 import { canBilan, hasBilanToday, BILAN_HOUR } from '../game/daily';
 import { loadState, saveState, resetState } from '../game/storage';
 import { isDebugEnabled, isBilanAlwaysOpen, setBilanAlwaysOpen } from '../game/debug';
 import type { SaveState } from '../game/types';
-import { buildElementArt, buildEmptySpot } from '../ui/elementArt';
+import { createZoneTile } from '../ui/zoneArt';
+import { createCastle } from '../ui/castleArt';
 import { createUpgradePanel } from '../ui/UpgradePanel';
 import { createDebugPanel } from '../ui/DebugPanel';
 import { makeButton } from '../ui/Button';
 
-/** La forêt : unique écran de suivi, on voit tout d'un coup d'œil. */
+const CASTLE_X = 590;
+const CASTLE_Y = 445;
+
+/** La carte : le château au centre, les régions autour. */
 export class ForestScene extends Phaser.Scene {
   private state!: SaveState;
-  private elementLayer!: Phaser.GameObjects.Container;
+  private mapLayer!: Phaser.GameObjects.Container;
+  private zoneNodes = new Map<string, Phaser.GameObjects.Container>();
+  private castleNode?: Phaser.GameObjects.Container;
   private starsText!: Phaser.GameObjects.Text;
   private bilanButton?: Phaser.GameObjects.Container;
   private panel?: Phaser.GameObjects.Container;
@@ -30,42 +46,69 @@ export class ForestScene extends Phaser.Scene {
     this.debugEnabled = isDebugEnabled();
     this.state = loadState();
     this.drawBackground();
-    this.elementLayer = this.add.container(0, 0);
-    this.buildElements();
+    this.mapLayer = this.add.container(0, 0);
+    this.buildMap();
     this.buildHud();
     if (this.debugEnabled) this.buildDebugPanel();
   }
 
   private drawBackground(): void {
-    const horizon = 430;
-    this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, COLORS.sky);
-    this.add.circle(GAME_WIDTH - 140, 130, 70, COLORS.sun, 0.9);
-    this.add.ellipse(260, horizon, 900, 300, COLORS.groundDark, 0.5);
-    this.add.ellipse(760, horizon + 10, 900, 320, COLORS.groundDark, 0.4);
-    this.add.rectangle(GAME_WIDTH / 2, (horizon + GAME_HEIGHT) / 2, GAME_WIDTH, GAME_HEIGHT - horizon, COLORS.ground);
-    this.add.rectangle(GAME_WIDTH / 2, horizon, GAME_WIDTH, 30, COLORS.grass);
+    this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, COLORS.map);
+    const patches: Array<[number, number, number, number, number, number]> = [
+      [180, 200, 520, 360, COLORS.mapDark, 0.25],
+      [980, 640, 560, 360, COLORS.mapDark, 0.22],
+      [980, 180, 460, 300, COLORS.mapDark, 0.18],
+      [200, 660, 460, 300, COLORS.mapDark, 0.18],
+      [590, 445, 700, 520, 0xffffff, 0.08],
+    ];
+    for (const [x, y, w, h, c, a] of patches) this.add.ellipse(x, y, w, h, c, a);
+
+    // Petite rivière décorative en haut à gauche.
+    const river = this.add.graphics();
+    river.lineStyle(18, COLORS.mapWater, 0.5);
+    river.beginPath();
+    river.moveTo(0, 520);
+    river.lineTo(220, 470);
+    river.lineTo(430, 520);
+    river.strokePath();
   }
 
-  private buildElements(): void {
-    this.elementLayer.removeAll(true);
-    for (const el of ELEMENTS) {
-      const created = isCreated(this.state, el.id);
-      const level = levelOf(this.state, el.id);
-      const slot = this.add.container(el.x, el.y);
-      slot.add(created ? buildElementArt(this, el, level) : buildEmptySpot(this));
+  private buildMap(): void {
+    this.mapLayer.removeAll(true);
+    this.zoneNodes.clear();
+    this.castleNode = undefined;
+    this.buildCastle();
+    for (const zone of ZONES) this.buildZone(zone);
+  }
 
-      const hit = this.add.circle(0, -18, 46, 0xffffff, 0.001).setInteractive({ useHandCursor: true });
-      hit.on('pointerdown', () => this.openPanel(el));
-      slot.add(hit);
+  private buildCastle(): void {
+    this.castleNode?.destroy();
+    const node = this.add.container(CASTLE_X, CASTLE_Y);
+    node.add(createCastle(this, levelOf(this.state, CASTLE_ID)));
+    const hit = this.add.circle(0, 0, 112, 0xffffff, 0.001).setInteractive({ useHandCursor: true });
+    hit.on('pointerdown', () => this.openPanel(CASTLE_ID));
+    node.add(hit);
+    this.mapLayer.add(node);
+    this.castleNode = node;
+  }
 
-      this.elementLayer.add(slot);
-    }
+  private buildZone(zone: ZoneDef): void {
+    this.zoneNodes.get(zone.id)?.destroy();
+    const node = this.add.container(zone.x, zone.y);
+    node.add(createZoneTile(this, zone, isCreated(this.state, zone.id), levelOf(this.state, zone.id)));
+    const hit = this.add
+      .rectangle(0, 0, zone.w, zone.h, 0xffffff, 0.001)
+      .setInteractive({ useHandCursor: true });
+    hit.on('pointerdown', () => this.openPanel(zone.id));
+    node.add(hit);
+    this.mapLayer.add(node);
+    this.zoneNodes.set(zone.id, node);
   }
 
   private buildHud(): void {
-    this.add.rectangle(GAME_WIDTH / 2, 44, GAME_WIDTH, 88, 0x000000, 0.16);
+    this.add.rectangle(109, 40, 178, 48, 0xfff7e6, 0.92).setStrokeStyle(3, COLORS.panelStroke);
     this.starsText = this.add
-      .text(28, 44, '', { fontFamily: FONT, fontSize: '30px', color: '#2b3a1f' })
+      .text(28, 40, '', { fontFamily: FONT, fontSize: '28px', color: '#2b3a1f' })
       .setOrigin(0, 0.5);
     this.updateStars();
     this.buildBilanButton();
@@ -95,9 +138,9 @@ export class ForestScene extends Phaser.Scene {
     }
     this.bilanButton = makeButton(
       this,
-      GAME_WIDTH - 130,
+      GAME_WIDTH - 145,
       44,
-      230,
+      250,
       56,
       label,
       color,
@@ -119,22 +162,53 @@ export class ForestScene extends Phaser.Scene {
     }
   }
 
-  private openPanel(el: ElementDef): void {
+  private openPanel(id: string): void {
     if (this.panel) return;
-    this.panel = createUpgradePanel(this, el, this.state, {
-      onUpgrade: (id) => this.act(() => upgradeElement(this.state, id)),
-      onUnlock: (id) => this.act(() => unlockElement(this.state, id)),
-      onClose: () => this.closePanel(),
-    });
+    const isCastle = id === CASTLE_ID;
+    const zone = zoneById(id);
+    const created = isCreated(this.state, id);
+    const level = levelOf(this.state, id);
+    const name = isCastle ? CASTLE_NAME : (zone?.name ?? 'Région');
+    const subtitle = isCastle
+      ? 'Ton château'
+      : zone?.ring === 'inner'
+        ? 'Région intérieure'
+        : 'Région extérieure';
+    const unlockReason = !created && !isCastle ? unlockBlockReason(this.state, id) : null;
+
+    this.panel = createUpgradePanel(
+      this,
+      { name, subtitle, created, level, unlockReason, stars: this.state.stars },
+      {
+        onUpgrade: () => this.applyChange(() => upgradeElement(this.state, id), id),
+        onUnlock: () => this.applyChange(() => unlockElement(this.state, id), id),
+        onClose: () => this.closePanel(),
+      },
+    );
   }
 
-  private act(change: () => SaveState): void {
+  private applyChange(change: () => SaveState, id?: string): void {
     const next = change();
     if (next === this.state) return;
     this.state = next;
     saveState(this.state);
     this.closePanel();
-    this.buildElements();
+    if (id === undefined) {
+      this.refreshAll();
+      return;
+    }
+    if (id === CASTLE_ID) {
+      this.buildCastle();
+    } else {
+      const zone = zoneById(id);
+      if (zone) this.buildZone(zone);
+    }
+    this.updateStars();
+    this.buildBilanButton();
+  }
+
+  private refreshAll(): void {
+    this.buildMap();
     this.updateStars();
     this.buildBilanButton();
   }
@@ -148,10 +222,11 @@ export class ForestScene extends Phaser.Scene {
     this.debugPanel?.destroy();
     this.debugPanel = createDebugPanel(this, {
       bilanOpen: isBilanAlwaysOpen(),
-      onAddStars: () => this.act(() => ({ ...this.state, stars: this.state.stars + 10 })),
-      onFairyWin: () => this.act(() => fairyWins(this.state)),
-      onWitchWin: () => this.act(() => applyMischiefs(this.state)),
-      onSetAllLevels: (level) => this.act(() => setAllLevels(this.state, level)),
+      onAddStars: () => this.applyChange(() => ({ ...this.state, stars: this.state.stars + 10 })),
+      onFairyWin: () => this.applyChange(() => fairyWins(this.state)),
+      onWitchWin: () => this.applyChange(() => applyMischiefs(this.state)),
+      onSetAllLevels: (level) => this.applyChange(() => setAllLevels(this.state, level)),
+      onUnlockAll: () => this.applyChange(() => unlockAllZones(this.state)),
       onToggleBilan: () => {
         setBilanAlwaysOpen(!isBilanAlwaysOpen());
         this.buildDebugPanel();
@@ -160,16 +235,14 @@ export class ForestScene extends Phaser.Scene {
       onReset: () => {
         this.state = resetState();
         this.closePanel();
-        this.buildElements();
-        this.updateStars();
-        this.buildBilanButton();
+        this.refreshAll();
       },
     });
   }
 
   private showToast(message: string): void {
     this.toast?.destroy();
-    const container = this.add.container(GAME_WIDTH / 2, 260).setDepth(2000);
+    const container = this.add.container(GAME_WIDTH / 2, 120).setDepth(5000);
     const text = this.add
       .text(0, 0, message, { fontFamily: FONT, fontSize: '22px', color: '#2b3a1f' })
       .setOrigin(0.5);

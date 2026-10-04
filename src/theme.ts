@@ -17,11 +17,17 @@ export const COLORS = {
   witchAcid: 0x8fd14f,
   disabled: 0x9aa08f,
   card: 0xffffff,
+  map: 0x8ec06a,
+  mapDark: 0x6fa64f,
+  mapWater: 0x7fc7e0,
 } as const;
 
 /** Police ronde, avec repli système si la police n'est pas disponible. */
 export const FONT = '"Fredoka", "Baloo 2", "Trebuchet MS", system-ui, sans-serif';
 
-/** Résolution de design (paysage iPad). */
-export const GAME_WIDTH = 1024;
-export const GAME_HEIGHT = 768;
+/**
+ * Résolution de design : iPad Air 4 en paysage (logique 1180 x 820).
+ * La carte a ainsi toute la largeur pour le château et les régions.
+ */
+export const GAME_WIDTH = 1180;
+export const GAME_HEIGHT = 820;

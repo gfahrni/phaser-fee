@@ -1,8 +1,15 @@
 # Fée
 
-Jeu de gestion quotidien : on s'occupe de la forêt d'une fée qui lutte contre
-une sorcière. Chaque soir, le bilan de la journée fait gagner soit la fée
-(+3 étoiles), soit la sorcière (2 Méchancetés).
+Jeu de gestion quotidien : on développe la forêt d'une fée qui lutte contre
+une sorcière. La vue est une **carte vue du dessus** : le **Château de la Fée**
+au centre, entouré de **18 régions** (anneau intérieur puis anneau extérieur).
+Chaque soir, le bilan de la journée fait gagner soit la fée (+3 étoiles),
+soit la sorcière (2 Méchancetés).
+
+Progression : chaque niveau ajoute un objet visible dans la région, chaque palier
+(tous les 10 niveaux) change la couleur et ajoute un monument. Une région ne
+s'ouvre que si les régions précédentes sont au niveau 10 (les extérieures exigent
+en plus toutes les intérieures au niveau 10).
 
 L'idée d'origine et le plan sont archivés dans [`idee_depart/`](idee_depart/).
 
@@ -40,8 +47,9 @@ Autre méthode : dans la console du navigateur,
 `localStorage.setItem('fee.debug','1')` puis recharger.
 
 Le panneau propose : **+10 ⭐**, **Fée +3**, **Sorcière -2**,
-**Bilan: OUVERT / 18h** (force ou non la règle des 18h) et **Reset**.
-Une seconde rangée met **tous les éléments au niveau 10, 20, 30, 40 ou 50**.
+**Bilan: OUVERT / 18h** (force ou non la règle des 18h), **Tout ouvrir**
+(débloque toutes les régions) et **Reset**. Une seconde rangée met **tout au
+niveau 10, 20, 30, 40 ou 50**. Le panneau se replie via le bouton **🔧 Debug**.
 
 ## Déploiement
 

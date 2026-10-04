@@ -1,13 +1,13 @@
 import type { SaveState } from './types';
-import { ELEMENTS } from './upgrades';
+import { CASTLE_ID, ZONES } from './zones';
 
-/** Au départ : la cabane niveau 1, rien d'autre, 0 étoile. */
+/** Au départ : le château niveau 1, toutes les régions verrouillées, 0 étoile. */
 export function createInitialState(): SaveState {
   const elements: SaveState['elements'] = {};
-  for (const el of ELEMENTS) {
-    elements[el.id] = { created: false, level: 0 };
+  elements[CASTLE_ID] = { created: true, level: 1 };
+  for (const zone of ZONES) {
+    elements[zone.id] = { created: false, level: 0 };
   }
-  elements.cabane = { created: true, level: 1 };
   return {
     fairyName: 'Fée',
     stars: 0,
