@@ -22,9 +22,12 @@ export function hasBilanToday(state: SaveState, now: Date = new Date()): boolean
   return state.lastBilanDate === todayKey(now);
 }
 
-/** Le bilan est possible s'il est ≥ 18h et s'il n'a pas déjà été fait aujourd'hui. */
-export function canBilan(state: SaveState, now: Date = new Date()): boolean {
-  return isAfterBilanHour(now) && !hasBilanToday(state, now);
+/**
+ * Le bilan est possible s'il est ≥ 18h et s'il n'a pas déjà été fait aujourd'hui.
+ * `ignoreHour` (mode debug) ignore la contrainte de 18h.
+ */
+export function canBilan(state: SaveState, now: Date = new Date(), ignoreHour = false): boolean {
+  return (ignoreHour || isAfterBilanHour(now)) && !hasBilanToday(state, now);
 }
 
 /** Applique le bilan du jour. Renvoie l'état inchangé si le bilan n'est pas possible. */
@@ -33,8 +36,9 @@ export function applyBilan(
   choice: BilanChoice,
   now: Date = new Date(),
   rng: () => number = Math.random,
+  ignoreHour = false,
 ): SaveState {
-  if (!canBilan(state, now)) return state;
+  if (!canBilan(state, now, ignoreHour)) return state;
   const next = choice === 'fee' ? fairyWins(state) : applyMischiefs(state, rng);
   return { ...next, lastBilanDate: todayKey(now) };
 }

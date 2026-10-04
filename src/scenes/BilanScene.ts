@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, FONT, GAME_WIDTH, GAME_HEIGHT } from '../theme';
 import { applyBilan, canBilan, type BilanChoice } from '../game/daily';
 import { loadState, saveState } from '../game/storage';
+import { isDebugEnabled, isBilanAlwaysOpen } from '../game/debug';
 
 interface CardDef {
   choice: BilanChoice;
@@ -33,7 +34,8 @@ export class BilanScene extends Phaser.Scene {
 
   create(): void {
     const state = loadState();
-    if (!canBilan(state)) {
+    const force = isDebugEnabled() && isBilanAlwaysOpen();
+    if (!canBilan(state, new Date(), force)) {
       this.scene.start('Forest');
       return;
     }
@@ -89,7 +91,8 @@ export class BilanScene extends Phaser.Scene {
 
   private choose(choice: BilanChoice): void {
     const state = loadState();
-    const next = applyBilan(state, choice);
+    const force = isDebugEnabled() && isBilanAlwaysOpen();
+    const next = applyBilan(state, choice, new Date(), Math.random, force);
     if (next !== state) saveState(next);
     this.scene.start('Result', { choice });
   }
